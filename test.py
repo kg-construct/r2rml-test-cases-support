@@ -113,8 +113,9 @@ def run_test(t_identifier, mapping, test_uri, expected_output):
 
     # if there is output file
     if os.path.isfile(config["properties"]["output_results"]):
-        os.system("cp " + config["properties"][
-            "output_results"] + " " + t_identifier + "/engine_output-" + database_system + ".ttl")
+        extension = config["properties"]["output_results"].split(".")[-1]
+        os.system("cp " + config["properties"]["output_results"] + " " +
+                t_identifier + "/engine_output-" + database_system + "." + extension)
         # and expected output is true
         if expected_output:
             output_graph = Graph()
