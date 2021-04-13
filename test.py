@@ -4,7 +4,7 @@ import csv
 import mysql.connector
 import psycopg2
 from configparser import ConfigParser, ExtendedInterpolation
-from rdflib import Graph, RDF, Namespace, compare, Literal, URIRef
+from rdflib import ConjunctiveGraph, RDF, Namespace, compare, Literal, URIRef
 
 mysql_exceptions = ["R2RMLTC0002d", "R2RMLTC0003b", "R2RMLTC0014a", "R2RMLTC0014b", "R2RMLTC0014c"]
 
@@ -16,8 +16,11 @@ def test_all():
     for r in manifest_graph.query(q1):
         database_uri = r.database_uri
         d_identifier = manifest_graph.value(subject=database_uri, predicate=DCELEMENTS.identifier, object=None)
+        d_identifier = d_identifier.toPython()
         d_title = manifest_graph.value(subject=database_uri, predicate=DCELEMENTS.title, object=None)
+        d_title = d_title.toPython()
         database = manifest_graph.value(subject=database_uri, predicate=RDB2RDFTEST.sqlScriptFile, object=None)
+        database = database.toPython()
         print("**************************************************************************")
         print("Using the database: " + d_identifier + " (" + d_title + ")")
         database_load(database)
@@ -27,11 +30,15 @@ def test_all():
         for r2 in manifest_graph.query(q2, initBindings={'?database_uri': URIRef(database_uri)}):
             test_uri = r2.test_uri
             t_identifier = manifest_graph.value(subject=test_uri, predicate=DCELEMENTS.identifier, object=None)
+            t_identifier = t_identifier.toPython()
             t_title = manifest_graph.value(subject=test_uri, predicate=DCELEMENTS.title, object=None)
+            t_title = t_title.toPython()
             purpose = manifest_graph.value(subject=test_uri, predicate=TESTDEC.purpose, object=None)
-            expected_output = bool(
-                manifest_graph.value(subject=test_uri, predicate=RDB2RDFTEST.hasExpectedOutput, object=None))
+            purpose = purpose.toPython()
+            expected_output = manifest_graph.value(subject=test_uri, predicate=RDB2RDFTEST.hasExpectedOutput, object=None)
+            expected_output = expected_output.toPython()
             r2rml = manifest_graph.value(subject=test_uri, predicate=RDB2RDFTEST.mappingDocument, object=None)
+            r2rml = r2rml.toPython()
             print("-----------------------------------------------------------------")
             print("Testing R2RML test-case: " + t_identifier + " (" + t_title + ")")
             print("Purpose of this test is: " + purpose)
@@ -41,11 +48,16 @@ def test_all():
 def test_one(identifier):
     test_uri = manifest_graph.value(subject=None, predicate=DCELEMENTS.identifier, object=Literal(identifier))
     t_title = manifest_graph.value(subject=test_uri, predicate=DCELEMENTS.title, object=None)
+    t_title = t_title.toPython()
     purpose = manifest_graph.value(subject=test_uri, predicate=TESTDEC.purpose, object=None)
-    expected_output = bool(manifest_graph.value(subject=test_uri, predicate=RDB2RDFTEST.hasExpectedOutput, object=None))
+    purpose = purpose.toPython()
+    expected_output = manifest_graph.value(subject=test_uri, predicate=RDB2RDFTEST.hasExpectedOutput, object=None)
+    expected_output = expected_output.toPython()
     r2rml = manifest_graph.value(subject=test_uri, predicate=RDB2RDFTEST.mappingDocument, object=None)
+    r2rml = r2rml.toPython()
     database_uri = manifest_graph.value(subject=test_uri, predicate=RDB2RDFTEST.database, object=None)
     database = manifest_graph.value(subject=database_uri, predicate=RDB2RDFTEST.sqlScriptFile, object=None)
+    database = database.toPython()
     print("Testing R2RML test-case: " + identifier + " (" + t_title + ")")
     print("Purpose of this test is: " + purpose)
     database_load(database)
@@ -87,7 +99,7 @@ def database_load(database_script):
     elif database_system == "postgresql":
         cnx = psycopg2.connect("dbname='r2rml' user='r2rml' host='localhost' password='r2rml'")
         cursor = cnx.cursor()
-        if database_script == Literal("d016.sql"):
+        if database_script == "d016.sql":
             database_script = "d016-postgresql.sql"
         for statement in open('databases/' + database_script):
             cursor.execute(statement)
@@ -98,14 +110,15 @@ def database_load(database_script):
 
 def run_test(t_identifier, mapping, test_uri, expected_output):
     if database_system == "mysql" and t_identifier in mysql_exceptions:
-        mapping = mapping.replace(".ttl", "") + "-mysql.ttl"
+        mapping = mapping.replace(".ttl", "-mysql.ttl")
     os.system("cp " + t_identifier + "/" + mapping + " r2rml.ttl")
-    expected_output_graph = Graph()
+    expected_output_graph = ConjunctiveGraph()
     if os.path.isfile(config["properties"]["output_results"]):
         os.system("rm " + config["properties"]["output_results"])
 
     if expected_output:
         output = manifest_graph.value(subject=test_uri, predicate=RDB2RDFTEST.output, object=None)
+        output = output.toPython()
         expected_output_graph.parse("./" + t_identifier + "/" + output, format="nquads")
 
     os.system(
@@ -113,11 +126,12 @@ def run_test(t_identifier, mapping, test_uri, expected_output):
 
     # if there is output file
     if os.path.isfile(config["properties"]["output_results"]):
-        os.system("cp " + config["properties"][
-            "output_results"] + " " + t_identifier + "/engine_output-" + database_system + ".ttl")
+        extension = config["properties"]["output_results"].split(".")[-1]
+        os.system("cp " + config["properties"]["output_results"] + " " +
+                t_identifier + "/engine_output-" + database_system + "." + extension)
         # and expected output is true
         if expected_output:
-            output_graph = Graph()
+            output_graph = ConjunctiveGraph()
             iso_expected = compare.to_isomorphic(expected_output_graph)
             # trying to parse the output (e.g., not valid RDF)
             try:
@@ -129,18 +143,22 @@ def run_test(t_identifier, mapping, test_uri, expected_output):
                     result = passed
                 # and graphs are distinct
                 else:
+                    print("Output RDF does not match with the expected RDF")
                     result = failed
             # output is not valid RDF
             except:
+                print("Output RDF is invalid")
                 result = failed
 
         # and expected output is false
         else:
+            print("Output RDF found but none was expected")
             result = failed
     # if there is not output file
     else:
         # and expected output is true
         if expected_output:
+            print("No RDF output found while output was expected")
             result = failed
         # expected output is false
         else:
@@ -163,16 +181,16 @@ def generate_results():
 
 def merge_results():
     if os.path.isfile("results-mysql.ttl") and os.path.isfile("results-postgresql.ttl"):
-        final_results = Graph()
+        final_results = ConjunctiveGraph()
         final_results.parse("results-mysql.ttl", format="ntriples")
         final_results.parse("results-postgresql.ttl", format="ntriples")
         final_results.serialize("results.ttl", format="ntriples")
     elif os.path.isfile("results-mysql.ttl"):
-        final_results = Graph()
+        final_results = ConjunctiveGraph()
         final_results.parse("results-mysql.ttl", format="ntriples")
         final_results.serialize("results.ttl", format="ntriples")
     elif os.path.isfile("results-postgresql.ttl"):
-        final_results = Graph()
+        final_results = ConjunctiveGraph()
         final_results.parse("results-postgresql.ttl", format="ntriples")
         final_results.serialize("results.ttl", format="ntriples")
 
@@ -198,17 +216,21 @@ def get_database_name():
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Configuration file is missing: python3 test.py <config file>")
+        sys.exit(1)
+
     config_file = str(sys.argv[1])
     if not os.path.isfile(config_file):
         print("The configuration file " + config_file + " does not exist.")
         print("Aborting...")
-        sys.exit(1)
+        sys.exit(2)
 
     config = ConfigParser(interpolation=ExtendedInterpolation())
     config.read(config_file)
     database_system = config["properties"]["database_system"]
 
-    manifest_graph = Graph()
+    manifest_graph = ConjunctiveGraph()
     manifest_graph.parse("./manifest.ttl", format='turtle')
     RDB2RDFTEST = Namespace("http://purl.org/NET/rdb2rdf-test#")
     TESTDEC = Namespace("http://www.w3.org/2006/03/test-description#")
