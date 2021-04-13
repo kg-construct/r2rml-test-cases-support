@@ -130,18 +130,22 @@ def run_test(t_identifier, mapping, test_uri, expected_output):
                     result = passed
                 # and graphs are distinct
                 else:
+                    print("Output RDF does not match with the expected RDF")
                     result = failed
             # output is not valid RDF
             except:
+                print("Output RDF is invalid")
                 result = failed
 
         # and expected output is false
         else:
+            print("Output RDF found but none was expected")
             result = failed
     # if there is not output file
     else:
         # and expected output is true
         if expected_output:
+            print("No RDF output found while output was expected")
             result = failed
         # expected output is false
         else:
