@@ -4,7 +4,7 @@ import csv
 import mysql.connector
 import psycopg2
 from configparser import ConfigParser, ExtendedInterpolation
-from rdflib import Graph, RDF, Namespace, compare, Literal, URIRef
+from rdflib import ConjunctiveGraph, RDF, Namespace, compare, Literal, URIRef
 
 mysql_exceptions = ["R2RMLTC0002d", "R2RMLTC0003b", "R2RMLTC0014a", "R2RMLTC0014b", "R2RMLTC0014c"]
 
@@ -100,7 +100,7 @@ def run_test(t_identifier, mapping, test_uri, expected_output):
     if database_system == "mysql" and t_identifier in mysql_exceptions:
         mapping = mapping.replace(".ttl", "") + "-mysql.ttl"
     os.system("cp " + t_identifier + "/" + mapping + " r2rml.ttl")
-    expected_output_graph = Graph()
+    expected_output_graph = ConjunctiveGraph()
     if os.path.isfile(config["properties"]["output_results"]):
         os.system("rm " + config["properties"]["output_results"])
 
@@ -118,7 +118,7 @@ def run_test(t_identifier, mapping, test_uri, expected_output):
                 t_identifier + "/engine_output-" + database_system + "." + extension)
         # and expected output is true
         if expected_output:
-            output_graph = Graph()
+            output_graph = ConjunctiveGraph()
             iso_expected = compare.to_isomorphic(expected_output_graph)
             # trying to parse the output (e.g., not valid RDF)
             try:
@@ -168,16 +168,16 @@ def generate_results():
 
 def merge_results():
     if os.path.isfile("results-mysql.ttl") and os.path.isfile("results-postgresql.ttl"):
-        final_results = Graph()
+        final_results = ConjunctiveGraph()
         final_results.parse("results-mysql.ttl", format="ntriples")
         final_results.parse("results-postgresql.ttl", format="ntriples")
         final_results.serialize("results.ttl", format="ntriples")
     elif os.path.isfile("results-mysql.ttl"):
-        final_results = Graph()
+        final_results = ConjunctiveGraph()
         final_results.parse("results-mysql.ttl", format="ntriples")
         final_results.serialize("results.ttl", format="ntriples")
     elif os.path.isfile("results-postgresql.ttl"):
-        final_results = Graph()
+        final_results = ConjunctiveGraph()
         final_results.parse("results-postgresql.ttl", format="ntriples")
         final_results.serialize("results.ttl", format="ntriples")
 
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     config.read(config_file)
     database_system = config["properties"]["database_system"]
 
-    manifest_graph = Graph()
+    manifest_graph = ConjunctiveGraph()
     manifest_graph.parse("./manifest.ttl", format='turtle')
     RDB2RDFTEST = Namespace("http://purl.org/NET/rdb2rdf-test#")
     TESTDEC = Namespace("http://www.w3.org/2006/03/test-description#")
