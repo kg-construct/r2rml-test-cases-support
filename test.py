@@ -203,11 +203,15 @@ def get_database_name():
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Configuration file is missing: python3 test.py <config file>")
+        sys.exit(1)
+
     config_file = str(sys.argv[1])
     if not os.path.isfile(config_file):
         print("The configuration file " + config_file + " does not exist.")
         print("Aborting...")
-        sys.exit(1)
+        sys.exit(2)
 
     config = ConfigParser(interpolation=ExtendedInterpolation())
     config.read(config_file)
