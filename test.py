@@ -234,7 +234,7 @@ if __name__ == "__main__":
     manifest_graph.parse("./manifest.ttl", format='turtle')
     RDB2RDFTEST = Namespace("http://purl.org/NET/rdb2rdf-test#")
     TESTDEC = Namespace("http://www.w3.org/2006/03/test-description#")
-    DCELEMENTS = Namespace("http://purl.org/dc/elements/1.1/")
+    DCELEMENTS = Namespace("http://purl.org/dc/terms/")
 
     results = [["tester", "platform", "rdbms", "testid", "result"]]
     metadata = [
