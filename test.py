@@ -121,7 +121,7 @@ def run_test(t_identifier, mapping, test_uri, expected_output):
         output = output.toPython()
         expected_output_graph.parse("./" + t_identifier + "/" + output, format="nquads")
 
-    os.system(
+    exit_code = os.system(
         config["properties"]["engine_command"] + " > " + t_identifier + "/engine_output-" + database_system + ".log")
 
     # if there is output file
@@ -150,11 +150,15 @@ def run_test(t_identifier, mapping, test_uri, expected_output):
                 print("Output RDF is invalid")
                 result = failed
 
+        # and expected output is false and error-code
+        elif exit_code != 0:
+            print("The processor returned a non-zero error code signalling a mistake (even though a file might have been generated)")
+            result = passed
         # and expected output is false
         else:
             print("Output RDF found but none was expected")
             result = failed
-    # if there is not output file
+    # if there is no output file
     else:
         # and expected output is true
         if expected_output:
