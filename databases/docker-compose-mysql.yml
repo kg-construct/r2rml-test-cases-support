@@ -11,4 +11,4 @@ services:
       MYSQL_DATABASE: r2rml
     ports:
       - "3306:3306"
-    command: --sql_mode="ANSI_QUOTES"
+    command: --sql_mode="ANSI_QUOTES,PAD_CHAR_TO_FULL_LENGTH"
