@@ -57,6 +57,9 @@ engine_command: java -jar morph-rdb.jar -p properties.properties # command to ru
 7. Upload or update the obtained results the access point you have provided in the configuration step.
 8. For each new version of your engine, repeat the process from step 4 to 7.
 
+### Notes
+The MySQL Docker container stores timestamps as UTC. Values that are retrieved from the database may therefore not correspond with the time zone of the host. If you notice that a test fails because the times are off, try appending `?useLegacyDatetimeCode=false&serverTimezone=XXX`, where `XXX` corresponds with your [IANA Time Zone Database](https://www.iana.org/time-zones) entry (e.g., `Europe/Brussels`), to the JDBC connection URL.
+
 
 Overview of the testing steps:
 ![Testing setp](misc/test.png?raw=true "Testing setp")
