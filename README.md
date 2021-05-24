@@ -63,4 +63,4 @@ Overview of the testing steps:
 
 
 ### Notes
-The MySQL Docker container stores timestamps as UTC. Values that are retrieved from the database may therefore not correspond with the time zone of the host. If you notice that a test fails because the times are off, try appending `?useLegacyDatetimeCode=false&serverTimezone=XXX`, where `XXX` corresponds with your [IANA Time Zone Database](https://www.iana.org/time-zones) entry (e.g., `Europe/Brussels`), to the JDBC connection URL.
+- The MySQL Docker container stores timestamps as UTC. Values that are retrieved from the database may therefore not correspond with the time zone of the host. If you notice that a test fails because the times are off, try appending `?useLegacyDatetimeCode=false&serverTimezone=XXX`, where `XXX` corresponds with your [IANA Time Zone Database](https://www.iana.org/time-zones) entry (e.g., `Europe/Brussels`), to the JDBC connection URL.
