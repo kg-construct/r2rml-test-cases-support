@@ -16,8 +16,8 @@ Test the capabilities of your R2RML engine with the [R2RML test cases](https://w
 
 ## RDBMS coverage and properties info:
 
-- MySQL (`port = 3306`)
-- PostgreSQL (`port = 5432`)
+- MySQL v8.0 (`port = 3306`)
+- PostgreSQL v13.4 (`port = 5432`)
 
 Connection properties for any RDBMS are: `database = r2rml, user = r2rml, password = r2rml`.
 
