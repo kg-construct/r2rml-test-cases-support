@@ -21,7 +21,7 @@ Test the capabilities of your R2RML engine with the [R2RML test cases](https://w
 
 Connection properties for any RDBMS are: `database = r2rml, user = r2rml, password = r2rml`.
 
-For testing purposes, **mapping path is invariable, it is always `./r2rml.ttl`** and the base IRI of the output is **http://example.com/base/**
+For testing purposes, **mapping path is invariable, it is always `./r2rml.ttl`** and **the base IRI of the output is http://example.com/base/**
 
 
 ## Steps to generate the results from the R2RML test-cases:
