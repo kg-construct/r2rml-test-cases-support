@@ -7,6 +7,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 from rdflib import ConjunctiveGraph, RDF, Namespace, compare, Literal, URIRef
 
 mysql_exceptions = ["R2RMLTC0002d", "R2RMLTC0003b", "R2RMLTC0014a", "R2RMLTC0014b", "R2RMLTC0014c"]
+mysql_non_compliance = ["R2RMLTC0002f", "R2RMLTC0018a"]
 
 
 def test_all():
@@ -111,6 +112,12 @@ def database_load(database_script):
 def run_test(t_identifier, mapping, test_uri, expected_output):
     if database_system == "mysql" and t_identifier in mysql_exceptions:
         mapping = mapping.replace(".ttl", "-mysql.ttl")
+
+    if database_system == "mysql" and t_identifier in mysql_non_compliance:
+        print(f"Skipped test {t_identifier} because MySQL non-compliance with ANSI SQL")
+        results.append([config["tester"]["tester_name"], config["engine"]["engine_name"], get_database_name(), t_identifier, "untested"])
+        return
+
     os.system("cp " + t_identifier + "/" + mapping + " r2rml.ttl")
     expected_output_graph = ConjunctiveGraph()
     if os.path.isfile(config["properties"]["output_results"]):
