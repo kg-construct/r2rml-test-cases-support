@@ -89,7 +89,8 @@ def database_load(database_script):
     print("Loading in " + config["properties"]["database_system"] + " system the file:" + database_script)
 
     if database_system == "mysql":
-        cnx = mysql.connector.connect(user='r2rml', password='r2rml', host='127.0.0.1', database='r2rml')
+        host = os.environ.get('HOST', '127.0.0.1')
+        cnx = mysql.connector.connect(user='r2rml', password='r2rml', host=host, database='r2rml')
         cursor = cnx.cursor()
         for statement in open('databases/' + database_script):
             cursor.execute(statement)
@@ -98,7 +99,8 @@ def database_load(database_script):
         cnx.close()
 
     elif database_system == "postgresql":
-        cnx = psycopg2.connect("dbname='r2rml' user='r2rml' host='localhost' password='r2rml'")
+        host = os.environ.get('HOST', 'localhost')
+        cnx = psycopg2.connect("dbname='r2rml' user='r2rml' host='" + host + "' password='r2rml'")
         cursor = cnx.cursor()
         if database_script == "d016.sql":
             database_script = "d016-postgresql.sql"
